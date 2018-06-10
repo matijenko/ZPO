@@ -1,0 +1,157 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - My ASP.NET Application</title>
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700" rel="stylesheet"> 
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @{
+        <style>
+            .navbar-inverse {
+                background-color: #227cca;
+                border-color: #227cca;
+            }
+                .navbar-inverse .navbar-nav > li > a {
+                    color: #fff;
+                }
+        </style>
+    }
+
+</head>
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                @Html.ActionLink("ArtistStock", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+            </div>
+            <div class="navbar-collapse collapse">
+@if (Request.IsAuthenticated)
+{
+                <ul class="nav navbar-nav">
+                    <li>@Html.ActionLink("Add picture", "Create", "Pictures")</li>
+                </ul>
+                <ul class="nav navbar-nav">
+                    <li>@Html.ActionLink("Your pictures", "Mine", "Pictures")</li>
+                </ul>
+                <ul class="nav navbar-nav">
+                    <li>@Html.ActionLink("Ordered pictures", "Attending", "Pictures")</li>
+                </ul>
+}
+                <ul class="nav navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Categories
+                        </a>
+                        <ul class="dropdown-menu" id="categoriesDrop">
+                        </ul>
+                    </li>
+                </ul>
+                @Html.Partial("_LoginPartial")
+            </div>
+        </div>
+    </div>
+    <div class="container body-content">
+        <br />
+        <br />
+        @RenderBody()
+        <hr />
+        <footer>
+            <p>&copy; @DateTime.Now.Year - My ASP.NET Application</p>
+        </footer>
+    </div>
+
+        @Scripts.Render("~/bundles/lib")
+        @RenderSection("scripts", required: false)
+        <script type="text/x-template" id="notifications-template">
+            <ul class="notifications">
+                <%
+                _.each(notifications, function(notification){
+                if (notification.type == 1)  { %>
+                <li><span class="highlight"><%= notification.picture.artist.name %></span> has canceled the picture <%= notification.picture.venue %> at <%= moment(notification.picture.dateTime).format("D MMM HH:mm") %>.</li>
+                <% }
+
+                else if (notification.type == 2) {
+                var changes = [];
+                var originalValues = [];
+                var newValues = [];
+
+
+                changes.push('venue');
+                originalValues.push(notification.originalVenue);
+                newValues.push(notification.picture.venue);
+
+                %>
+                <li><span class="highlight"><%= notification.picture.artist.name %></span> has changed the <%= changes.join(' and ') %> of the picture from <%= originalValues.join('/') %> to <%= newValues.join('/') %> at <%= moment(notification.picture.dateTime).format("D MMM HH:mm") %>.</li>
+                <%
+                }
+                else if (notification.type == 3) {
+                %>
+                <li><span class="highlight"><%= notification.attender.name %></span> has ordered the picture: <%= notification.picture.venue %> at <%= moment(notification.dateTime).format("D MMM HH:mm") %>.</li>
+                <%
+                }
+                else if (notification.type == 4) {
+                %>
+                <li><span class="highlight"><%= notification.picture.artist.name %></span> has uploaded the picture: <%= notification.picture.venue %> at <%= moment(notification.picture.dateTime).format("D MMM HH:mm") %>.</li>
+                <%
+                }
+                })
+                %>
+            </ul>
+</script>
+<script>
+    var Test;
+    $(document).ready(function () {
+        $.ajax({
+            url: "/api/categories/",
+            method: "GET"
+        })
+            .done(function (result) {
+                for (index = 0, len = result.length; index < len; ++index)
+                {
+                    $("#categoriesDrop").append("<li role=\"separator\" class=\"divider\"></li>")
+                    $("#categoriesDrop").append("<a href = \"/Pictures/Category/" + result[index].id + "\">" + result[index].name + "</a>");
+                }
+            });
+
+        $.getJSON("/api/notifications",
+            function (notifications) {
+                if (notifications.length == 0)
+                    return;
+
+                $(".js-notifications-count")
+                    .text(notifications.length)
+                    .removeClass("hide")
+                    .addClass("animated bounce");
+
+                $(".notifications").popover({
+                    html: true,
+                    title: "Notifications",
+                    content: function() {
+                        var compiled = _.template($("#notifications-template").html());
+                        return compiled({ notifications: notifications });
+                    },
+                    placement: "bottom",
+                    template:
+                        '<div class="popover popover-tittle" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner popover-content"></div></div>'
+
+                }).on("shown.bs.popover",
+                    function() {
+                        $.post("/api/notifications/markAsRead")
+                            .done(function() {
+                                $(".js-notifications-count")
+                                    .text("")
+                                    .addClass("hide");
+                            });
+                    });
+            });
+     });
+</script>
+</body>
+</html>

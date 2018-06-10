@@ -1,0 +1,67 @@
+﻿@model IEnumerable<work.Models.ApplicationUser>
+@{
+    ViewBag.Title = "Followings";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@{
+    <style>
+        h3 {
+            display: inline;
+        }
+    </style>
+}
+
+<h2>Followings:</h2>
+
+@foreach (var user in Model)
+{
+        <div class="following">
+            <h3>@user.Name</h3>
+            <button data-user-id="@user.Id" class="btn btn-danger btn-sm js-delete-following">Unfollow?</button>
+        </div>
+    }
+
+@section scripts
+{
+    <script>
+    $(document).ready(function () {
+        $(".js-delete-following").click(function (e) {
+            var link = $(e.target);
+
+            bootbox.dialog({
+                title: "Confirm",
+                message: "<p>Are you sure you want to unfollow this artist?</p>",
+                buttons: {
+                    no: {
+                        label: "No",
+                        className: 'btn-default',
+                        callback: function () {
+                            bootbox.hideAll();
+                        }
+                    },
+                    yes: {
+                        label: "Yes",
+                        className: 'btn-danger',
+                        callback: function () {
+                            $.ajax({
+                                url: "/api/following/" + link.attr("data-user-id"),
+                                method: "DELETE"
+                            })
+                                .done(function () {
+                                    link.parents("div.following").fadeOut(function () {
+                                        $(this).remove();
+                                    });
+                                })
+                                .fail(function (e) {
+                                    alert("Something failed!\n" + e.responseText);
+                                });
+                        }
+                    }
+                }
+            });
+        });
+    });
+    </script>
+}
+

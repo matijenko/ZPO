@@ -1,0 +1,132 @@
+﻿@model work.Controllers.HomeViewModel
+@{
+    ViewBag.Title = "Attending";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@{  
+   <style>
+    .containerPicture {
+        position: relative;
+        width: 50%;
+    }
+
+       .image {
+           display: block;
+           width: 300px;
+           height: 300px;
+       }
+
+       .overlay {
+           position: absolute;
+           top: 0;
+           bottom: 0;
+           left: 0;
+           right: 0;
+           height: 300px;
+           width: 300px;
+           opacity: 0;
+           transition: .5s ease;
+           background-color: #97c4ea;
+       }
+
+    #test:hover .overlay {
+        opacity: 1;
+    }
+
+    .text {
+        color: white;
+        font-size: 20px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        -ms-transform: translate(-50%, -50%);
+        text-align: center;
+    }
+    #center
+    {
+        width: 100px;
+        margin: auto;
+        padding-top: 50px;
+    }
+
+</style> 
+    }
+
+
+<h2> </h2>
+<div class="pictures container">
+    @foreach (var picture in Model.UpcomingPictures)
+    {
+        <div class="col-md-4">
+            <div class="containerPicture" id="test">
+                <img class="image" src="@Url.Action("Show","Pictures",new { id=picture.Id })" />
+                <div class="overlay">
+                    <div class="text">
+                        <div class="date">
+                            <div class="date">
+                                @picture.DateTime.ToString("d")
+                            </div>
+                        </div>
+                        @picture.Venue
+                        <div class="artist">
+                            @picture.Artist.Name
+                            @if (Request.IsAuthenticated && !picture.IsFollowed)
+                            {
+                                <button data-artist-id="@picture.ArtistId" class="btn btn-primary btn-sm js-toggle-following">Follow?</button>
+                            }
+                        </div>
+                        <div class="category">
+                            @picture.Category.Name
+                        </div>
+                        @if (picture.IsCanceled)
+                        {
+                            <div class="label label-warning">Canceled</div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+<div id="center"><a href="@Url.Action("GeneratePDF", "Home")">Orders</a></div>
+@section scripts
+{
+<script>
+    $(document).ready(function () {
+        $(".js-toggle-following").click(function (e) {
+            var link = $(e.target);
+
+            bootbox.dialog({
+                title: "Confirm",
+                message: "<p>Are you sure you want to follow this artist?</p>",
+                buttons: {
+                    no: {
+                        label: "No",
+                        className: 'btn-default',
+                        callback: function () {
+                            bootbox.hideAll();
+                        }
+                    },
+                    yes: {
+                        label: "Yes",
+                        className: 'btn-success',
+                        callback: function () {
+                            $.ajax({
+                                url: "/api/following/" + link.attr("data-artist-id"),
+                                method: "POST"
+                            })
+                                .done(function () {
+                                })
+                                .fail(function (e) {
+                                    alert("Something failed!\n" + e.responseText);
+                                });
+                        }
+                    }
+                }
+            });
+        });
+    });
+</script>
+}

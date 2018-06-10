@@ -1,0 +1,29 @@
+﻿@model work.Controllers.HomeViewModel
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>GeneratePDF</title>
+</head>
+<body>
+    <div>
+        <center>
+            <h1>Your ordered Pictures</h1>
+            <br />
+            @foreach (var item in Model.UpcomingPictures)
+            {
+
+                <img class="image" src="@Url.Action("Show","Pictures",new { id=item.Id })" />
+
+                <br />
+            }
+        </center>
+    </div>
+</body>
+</html>

@@ -1,0 +1,38 @@
+﻿@using System.Runtime.InteropServices
+@using System.Web.Mvc.Html
+@model work.ViewModels.PictureFormViewModel
+@{
+    ViewBag.Title = Model.Heading;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>@Model.Heading</h2>
+@using (Html.BeginForm("Create", "Pictures", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    <p class="alert alert-info">All fields are <strong>required</strong>.</p>
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.Id)
+    <div class="form-group">
+        @Html.LabelFor(m => m.Venue)
+        @Html.TextBoxFor(m => m.Venue, new { @class = "form-control", autofocus = "autofocus" })
+        @Html.ValidationMessageFor(m => m.Venue)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.File)
+        @Html.TextBoxFor(m => m.File, new { @class = "form-control", type = "file"})
+        @Html.ValidationMessageFor(m => m.File)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.Category)
+        @Html.DropDownListFor(m => m.Category, new SelectList(Model.Categories, "Id", "Name"), "", new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Category)
+    </div>
+    
+    <button type="submit" class="btn btn-primary btn-lg">Save</button>
+ 
+}
+@section scripts
+{
+    @Scripts.Render("~/bundles/jqueryval")
+}
+

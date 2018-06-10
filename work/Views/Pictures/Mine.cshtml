@@ -1,0 +1,132 @@
+﻿@model IEnumerable<work.Models.Picture>
+@{
+    ViewBag.Title = "Mine";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@{
+    <style>
+        .containerPicture {
+            position: relative;
+            width: 50%;
+        }
+
+        .image {
+            display: block;
+            width: 300px;
+            height: 300px;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 300px;
+            width: 300px;
+            opacity: 0;
+            transition: .5s ease;
+            background-color: #97c4ea;
+        }
+
+        #test:hover .overlay {
+            opacity: 1;
+        }
+
+        .text {
+            color: white;
+            font-size: 15px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            -ms-transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        a.actionLinks {
+            color: hotpink;
+        }
+
+        .photo-margin {
+            margin-bottom: 20px !important;
+        }
+    </style>
+}
+
+<h2>Your Pictures</h2>
+
+<div class="pictures container">
+    @foreach (var picture in Model)
+    {
+        <div class="col-md-4 picture photo-margin">
+            <div class="containerPicture" id="test">
+                <img class="image" src="@Url.Action("Show","Pictures",new { id=picture.Id })" />
+                <div class="overlay">
+                    <div class="text">
+                        <div class="date">
+                            <div class="date">
+                                @picture.DateTime.ToString("d")
+                            </div>
+                        </div>
+                        @picture.Venue
+                        <div class="category">
+                            @picture.Category.Name
+                        </div>
+                        <div class="actions">
+                            <a class="actionLinks" href="@Url.Action("Edit", "Pictures", new { id = picture.Id })">
+                                Edit
+                            </a> |
+                            <a href="#" class="js-cancel-picture actionLinks" data-picture-id="@picture.Id">
+                                Cancel
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+@section scripts
+{
+    <script>
+        $(document).ready(function() {
+            $(".js-cancel-picture").click(function(e) {
+                var link = $(e.target);
+
+                bootbox.dialog({
+                    title: "Confirm",
+                    message: "<p>Are you sure you want to cancel this picture?</p>",
+                    buttons: {
+                        no: {
+                            label: "No",
+                            className: 'btn-default',
+                            callback: function () {
+                                bootbox.hideAll();
+                            }
+                        },
+                        yes: {
+                            label: "Yes",
+                            className: 'btn-danger',
+                            callback: function () {
+                                $.ajax({
+                                        url: "/api/pictures/" + link.attr("data-picture-id"),
+                                        method: "DELETE"
+                                    })
+                                    .done(function () {
+                                        link.parents("div.picture").fadeOut(function () {
+                                            $(this).remove();
+                                        });
+                                    })
+                                    .fail(function () {
+                                        alert("Something failed!");
+                                    });
+                            }
+                        }
+                    }
+                });                            
+            });
+        });
+    </script>
+}
